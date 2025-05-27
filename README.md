@@ -6,9 +6,10 @@ BinData parser for the game Stella Sora
 * Parses binary data for the game Stella Sora automatically
 * Supports:
 
-  * \bin
-  * \language
-  * \text_data
+  * \data\bin
+  * \data\language
+  * \data\text_data
+  * \lua
 
 ## Getting Started
 
