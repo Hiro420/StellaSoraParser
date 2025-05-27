@@ -28,7 +28,8 @@ dotnet build
 Run the parser:
 
 ```bash
-StellaSoraParser.exe <path to assets\assetbundles\data>
+StellaSoraParser.exe <path to dumped assets\assetbundles>
 ```
+Please make sure you use the ones from Persistent_Store\\AssetBundles
 
 Copyright© Hiro420

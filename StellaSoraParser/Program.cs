@@ -8,6 +8,7 @@ public class MainApp
 {
 	internal static readonly byte[] CRYPT_TEXT_ASSET_KEY = Encoding.UTF8.GetBytes("#$*`x&*)0L[~!@,/");
 	internal static readonly string OutputPath = "BinData";
+	internal static readonly string OutputPathLua = "Lua";
 
 	public static void Main(string[] args)
 	{
@@ -17,20 +18,39 @@ public class MainApp
 		{
 			Directory.CreateDirectory(OutputPath);
 		}
+
+		if (!Path.Exists(OutputPathLua))
+		{
+			Directory.CreateDirectory(OutputPathLua);
+		}
+
 		foreach (string subdir in new[] { "bin", "language", "text_data" })
 			Directory.CreateDirectory(Path.Combine(OutputPath, subdir));
 
 		if (args.Length < 1 || !Path.Exists(args[0]))
 		{
-			Console.WriteLine($"Usage: StellaSoraParser.exe <path to assets\\assetbundles\\data>");
+			Console.WriteLine($"Usage: StellaSoraParser.exe <path to dumped assets\\assetbundles>");
 			return;
 		}
 
-		string path = args[0];
+		string path = Path.Combine(args[0], "data");
+		string luaPath = Path.Combine(args[0], "lua");
 
 		JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
 		// jsonSerializerSettings.Formatting = Formatting.Indented;
 		jsonSerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+
+
+		foreach (string fileFullPath in Directory.EnumerateFiles(luaPath, "*", SearchOption.AllDirectories))
+		{
+			byte[] decrypted = XXTeaHelper.Decrypt(File.ReadAllBytes(fileFullPath), CRYPT_TEXT_ASSET_KEY);
+			string relativePath = Path.GetRelativePath(luaPath, fileFullPath);
+			string outputPath = Path.Combine(OutputPathLua, relativePath.Replace(".bytes", ""));
+			string? outputDir = Path.GetDirectoryName(outputPath);
+			if (!string.IsNullOrEmpty(outputDir))
+				Directory.CreateDirectory(outputDir);
+			File.WriteAllBytes(outputPath, decrypted);
+		}
 
 		foreach (string filepath in Directory.GetFiles(Path.Combine(path, "bin")))
 		{
