@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Text;
-using Google.Protobuf;
 using Newtonsoft.Json;
 
 namespace StellaSoraParser;
@@ -29,6 +28,10 @@ public class MainApp
 
 		string path = args[0];
 
+		JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
+		// jsonSerializerSettings.Formatting = Formatting.Indented;
+		jsonSerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+
 		foreach (string filepath in Directory.GetFiles(Path.Combine(path, "bin")))
 		{
 			byte[] decrypted = XXTeaHelper.Decrypt(File.ReadAllBytes(filepath), CRYPT_TEXT_ASSET_KEY);
@@ -55,16 +58,10 @@ public class MainApp
 				byte[] value = kvp.Value;
 
 				object message = parseMethod.Invoke(parserInstance, new object[] { value })!;
-
-				string json = JsonFormatter.Default.Format((IMessage)message);
-
-				// got no native way to do it, so i have no other option...
-				object reparsed = JsonConvert.DeserializeObject(json)!;
-				keyValuePairs.Add(key, reparsed);
-
+				keyValuePairs.Add(key, message);
 			}
 
-			string asActualJson = JsonConvert.SerializeObject(keyValuePairs, Formatting.Indented);
+			string asActualJson = JsonConvert.SerializeObject(keyValuePairs, Formatting.Indented, jsonSerializerSettings);
 			string outputPath = Path.Combine(OutputPath, "bin", $"{fileName2Proto}.json");
 
 			File.WriteAllText(outputPath, asActualJson);
