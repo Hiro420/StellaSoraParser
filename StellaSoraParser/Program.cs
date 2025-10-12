@@ -6,7 +6,7 @@ namespace StellaSoraParser;
 
 public class MainApp
 {
-	internal static readonly byte[] CRYPT_TEXT_ASSET_KEY = Encoding.UTF8.GetBytes("#$*`x&*)0L[~!@,/");
+	internal static readonly byte[] CRYPT_TEXT_ASSET_KEY = Convert.FromHexString("a921a467c7d7df396e60909c31225bd2");
 	internal static readonly string OutputPath = "BinData";
 	internal static readonly string OutputPathLua = "Lua";
 
@@ -87,20 +87,29 @@ public class MainApp
 			File.WriteAllText(outputPath, asActualJson);
 		}
 
-		foreach (string filepath in Directory.GetFiles(Path.Combine(path, "language")))
+		DecryptFilesRecursively(Path.Combine(path, "language"), Path.Combine(OutputPath, "language"));
+		DecryptFilesRecursively(Path.Combine(path, "bubble"), Path.Combine(OutputPath, "bubble"));
+		DecryptFilesRecursively(Path.Combine(path, "dirty_words"), Path.Combine(OutputPath, "dirty_words"));
+	}
+
+	static void DecryptFilesRecursively(string inputDir, string outputDir)
+	{
+		foreach (string filepath in Directory.GetFiles(inputDir))
 		{
 			byte[] decrypted = XXTeaHelper.Decrypt(File.ReadAllBytes(filepath), CRYPT_TEXT_ASSET_KEY);
 			string fileName = Path.GetFileName(filepath);
-			string outputPath = Path.Combine(OutputPath, "language", fileName);
+			string outputPath = Path.Combine(outputDir, fileName);
+
+			Directory.CreateDirectory(outputDir);
+
 			File.WriteAllBytes(outputPath, decrypted);
 		}
 
-		foreach (string filepath in Directory.GetFiles(Path.Combine(path, "text_data", "bubble")))
+		foreach (string subDir in Directory.GetDirectories(inputDir))
 		{
-			byte[] decrypted = XXTeaHelper.Decrypt(File.ReadAllBytes(filepath), CRYPT_TEXT_ASSET_KEY);
-			string fileName = Path.GetFileName(filepath);
-			string outputPath = Path.Combine(OutputPath, "text_data", fileName);
-			File.WriteAllBytes(outputPath, decrypted);
+			string subDirName = Path.GetFileName(subDir);
+			string newOutputDir = Path.Combine(outputDir, subDirName);
+			DecryptFilesRecursively(subDir, newOutputDir);
 		}
 	}
 }
