@@ -8,7 +8,8 @@ BinData parser for the game Stella Sora
 
   * \data\bin
   * \data\language
-  * \data\text_data
+  * \data\bubble
+  * \data\dirty_words
   * \lua
 
 ## Getting Started
